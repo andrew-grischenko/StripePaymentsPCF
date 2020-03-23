@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <manifest>
-  <control namespace="Technomancy" constructor="StripePayments" version="0.0.1" display-name-key="StripePayments" description-key="StripePayments description" control-type="standard">
+  <control namespace="Technomancy" constructor="StripePayments" version="0.0.2" display-name-key="StripePayments" description-key="StripePayments description" control-type="standard">
     <!-- property node identifies a specific, configurable piece of data that the control expects from CDS -->
     <property name="amount" display-name-key="Amount" description-key="Payment amount" of-type="Currency" usage="bound" required="true" />
     <!-- 
@@ -16,6 +16,8 @@
     -->
     <resources>
       <code path="index.ts" order="1"/>
+      <css path="css/global.css" order="1" />
+      <css path="css/normalize.css" order="1" />
       <!-- UNCOMMENT TO ADD MORE RESOURCES
       <css path="css/StripePayments.css" order="1" />
       <resx path="strings/StripePayments.1033.resx" version="1.0.0" />

@@ -8,11 +8,6 @@ var _intent: string ;
 
 export class StripePayments implements ComponentFramework.StandardControl<IInputs, IOutputs> {
 
-	// reference to the component container HTMLDivElement
-	// This element contains all elements of our code component example
-	private _container: HTMLDivElement;
-	// reference to Power Apps component framework Context object
-
 	/**
 	 * Empty constructor.
 	 */
@@ -31,14 +26,22 @@ export class StripePayments implements ComponentFramework.StandardControl<IInput
 	 */
 	public init(context: ComponentFramework.Context<IInputs>, notifyOutputChanged: () => void, state: ComponentFramework.Dictionary, container:HTMLDivElement)
 	{
-		var stripePromise = loadStripe('pk_test_cyVrfRAcAVqIn5R9NCg0qBVd0023NbM4GD'); 
+
+		container.appendChild(this.getHTMLElements());
+		
+		// Disable the button until we have Stripe set up on the page
+		document.querySelector("button")!.disabled = true;
 
 		fetch("https://stripepaymentstest.azurewebsites.net/api/GetClientSecret?code=mH88UawpzidyR/MRtaOPeHe/feddsl5ReH0SEUkiiQLgaegOU4RfIw==")
 			.then(response => response.text())
 			.then(data => { 
 				_intent = data; 
 				console.log("Client secret received: " + _intent);
+
+				document.querySelector("button")!.disabled = false;
 			});
+
+		var stripePromise = loadStripe('pk_test_cyVrfRAcAVqIn5R9NCg0qBVd0023NbM4GD'); 
 
 		stripePromise.then( (stripe)=> {
 			if(stripe){
@@ -46,19 +49,19 @@ export class StripePayments implements ComponentFramework.StandardControl<IInput
 				_elements = stripe.elements();
 
 				var style = {
-						base: {
-						  color: "#32325d",
-						  fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
-						  fontSmoothing: "antialiased",
-						  fontSize: "16px",
-						  "::placeholder": {
-							color: "#aab7c4",
-						  },
-						},
-						invalid: {
-						  color: "#fa755a",
-						  iconColor: "#fa755a",
-						},
+					base: {
+						color: "#32325d",
+						fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+						fontSmoothing: "antialiased",
+						fontSize: "16px",
+						"::placeholder": {
+						  color: "#aab7c4"
+						}
+					  },
+					  invalid: {
+						color: "#fa755a",
+						iconColor: "#fa755a"
+					  }
 					}
 	
 				_card = _elements.create("card", {style: style });
@@ -69,66 +72,15 @@ export class StripePayments implements ComponentFramework.StandardControl<IInput
 					if(displayError)
 							displayError.innerText = (error) ? error.message : "";						
 				  });
+
+				// Handle form submission.
+				(<HTMLFormElement>document.getElementById("payment-form")!).addEventListener("submit", (event) => {
+					event.preventDefault();
+					// Initiate payment when the submit button is clicked
+					this.pay();
+					});
 			}
 		});
-		
-		this._container = document.createElement("div");
-		var scriptElement: HTMLElement = document.createElement("script");
-		scriptElement.setAttribute("src", "https://js.stripe.com/v3/");
-		this._container.appendChild(scriptElement);
-
-		/*var script2Element: HTMLElement = document.createElement("script");
-		script2Element.innerHTML = "var stripe = Stripe('pk_test_cyVrfRAcAVqIn5R9NCg0qBVd0023NbM4GD'); var elements = stripe.elements();";
-		this._container.appendChild(script2Element);*/
-
-		var formElement: HTMLElement = document.createElement("form");
-		formElement.setAttribute("id", "payment-form");
-
-		var cardDivElement: HTMLElement = document.createElement("div");
-		cardDivElement.setAttribute("id", "card-element");
-		formElement.appendChild(cardDivElement);
-
-		var errorDivElement: HTMLElement = document.createElement("div");
-		errorDivElement.setAttribute("id", "card-errors");
-		errorDivElement.setAttribute("role", "alert");
-		formElement.appendChild(errorDivElement);	
-		
-		var submitElement: HTMLElement = document.createElement("button");
-		submitElement.setAttribute("id", "submit");
-		submitElement.innerText = "Pay";
-		formElement.appendChild(submitElement);	
-
-		this._container.appendChild(formElement);
-		container.appendChild(this._container);
-
-		formElement.addEventListener('submit', function(ev) {
-			if(_stripe){
-				ev.preventDefault();
-				_stripe.confirmCardPayment(_intent, {
-				payment_method: {
-					card: _card,
-					billing_details: {
-						name: 'Jenny Rosen'
-					}
-				}
-				}).then(function(result: any) {
-				if (result && result.error) {
-					// Show error to your customer (e.g., insufficient funds)
-					console.log(result.error.message);
-				} else {
-					// The payment has been processed!
-					if (result && result.paymentIntent.status === 'succeeded') {
-						console.log("SUCCESSFUL PAYMENT!");
-					// Show a success message to your customer
-					// There's a risk of the customer closing the window before callback
-					// execution. Set up a webhook or plugin to listen for the
-					// payment_intent.succeeded event that handles any business critical
-					// post-payment actions.
-					}
-				}
-				});
-			}
-		  });
 
 	}
 
@@ -158,5 +110,105 @@ export class StripePayments implements ComponentFramework.StandardControl<IInput
 	public destroy(): void
 	{
 		// Add code to cleanup control if necessary
+	}
+
+	private getHTMLElements(): DocumentFragment 
+	{
+		let html = `   
+			<div class="sr-main">
+				<form id="payment-form" class="sr-payment-form">
+					<div class="sr-combo-inputs-row">
+						<div class="sr-input sr-card-element" id="card-element"></div>
+					</div>
+					<div class="sr-field-error" id="card-errors" role="alert"></div>
+					<button id="submit">
+						<div class="spinner hidden" id="spinner"></div>
+						<span id="button-text">Pay</span>
+						<span id="order-amount"></span>
+					</button>
+				</form>
+				<div class="sr-result hidden">
+					<p>Payment completed<br /></p>
+					<pre>
+						<code></code>
+					</pre>
+				</div>
+			</div>`;
+		var template = document.createElement('template');
+		html = html.trim(); // Never return a text node of whitespace as the result
+		template.innerHTML = html;
+		return template.content;
+	}
+
+
+
+
+	/*
+	* Calls stripe.confirmCardPayment which creates a pop-up modal to
+	* prompt the user to enter extra authentication details without leaving your page
+	*/
+	private pay(): void {
+	changeLoadingState(true);
+
+	// Initiate the payment.
+	// If authentication is required, confirmCardPayment will automatically display a modal
+	_stripe
+		.confirmCardPayment(_intent, {
+		payment_method: {
+			card: _card
+		}
+		})
+		.then( (result) => {
+		if (result.error) {
+			// Show error to your customer
+			showError(result.error.message!);
+		} else {
+			// The payment has been processed!
+			orderComplete(_intent);
+		}
+		});
+	};
+}
+
+/* ------- Post-payment helpers ------- */
+
+function showError(errorMsgText: string): void {
+	changeLoadingState(false);
+	var errorMsg = document.querySelector(".sr-field-error");
+	errorMsg!.textContent = errorMsgText;
+	setTimeout(() => {
+	  errorMsg!.textContent = "";
+	}, 4000);
+}
+
+/* Shows a success / error message when the payment is complete */
+function orderComplete(clientSecret: string) {
+  // Just for the purpose of the sample, show the PaymentIntent response object
+  _stripe.retrievePaymentIntent(clientSecret).then(function(result) {
+    var paymentIntent = result.paymentIntent;
+    var paymentIntentJson = JSON.stringify(paymentIntent, null, 2);
+
+    document.querySelector(".sr-payment-form")!.classList.add("hidden");
+    document.querySelector("pre")!.textContent = paymentIntentJson;
+
+    document.querySelector(".sr-result")!.classList.remove("hidden");
+    setTimeout(function() {
+      document.querySelector(".sr-result")!.classList.add("expand");
+    }, 200);
+
+    changeLoadingState(false);
+  });
+}
+
+// Show a spinner on payment submission
+function changeLoadingState(isLoading: boolean) {
+	if (isLoading) {
+		document.querySelector("button")!.disabled = true;
+		document.querySelector("#spinner")!.classList.remove("hidden");
+		document.querySelector("#button-text")!.classList.add("hidden");
+	} else {
+		document.querySelector("button")!.disabled = false;
+		document.querySelector("#spinner")!.classList.add("hidden");
+		document.querySelector("#button-text")!.classList.remove("hidden");
 	}
 }
