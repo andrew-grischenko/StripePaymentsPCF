@@ -8,6 +8,11 @@ var _intent: string ;
 
 export class StripePayments implements ComponentFramework.StandardControl<IInputs, IOutputs> {
 
+	private prop_amount: number;
+	private prop_currency: string;
+	private prop_description: string;
+	private prop_ZIP_code: boolean;
+	private prop_customer: string;
 	/**
 	 * Empty constructor.
 	 */
@@ -26,20 +31,7 @@ export class StripePayments implements ComponentFramework.StandardControl<IInput
 	 */
 	public init(context: ComponentFramework.Context<IInputs>, notifyOutputChanged: () => void, state: ComponentFramework.Dictionary, container:HTMLDivElement)
 	{
-
 		container.appendChild(this.getHTMLElements());
-		
-		// Disable the button until we have Stripe set up on the page
-		document.querySelector("button")!.disabled = true;
-
-		fetch("https://stripepaymentstest.azurewebsites.net/api/GetClientSecret?code=mH88UawpzidyR/MRtaOPeHe/feddsl5ReH0SEUkiiQLgaegOU4RfIw==")
-			.then(response => response.text())
-			.then(data => { 
-				_intent = data; 
-				console.log("Client secret received: " + _intent);
-
-				document.querySelector("button")!.disabled = false;
-			});
 
 		var stripePromise = loadStripe('pk_test_cyVrfRAcAVqIn5R9NCg0qBVd0023NbM4GD'); 
 
@@ -53,7 +45,6 @@ export class StripePayments implements ComponentFramework.StandardControl<IInput
 						color: "#32325d",
 						fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
 						fontSmoothing: "antialiased",
-						fontSize: "16px",
 						"::placeholder": {
 						  color: "#aab7c4"
 						}
@@ -64,7 +55,9 @@ export class StripePayments implements ComponentFramework.StandardControl<IInput
 					  }
 					}
 	
-				_card = _elements.create("card", {style: style });
+				_card = _elements.create("card", {
+					style: style,
+					hidePostalCode: !this.prop_ZIP_code });
 				_card.mount("#card-element");
 
 				_card.on('change', ({error}) => {
@@ -76,9 +69,8 @@ export class StripePayments implements ComponentFramework.StandardControl<IInput
 				// Handle form submission.
 				(<HTMLFormElement>document.getElementById("payment-form")!).addEventListener("submit", (event) => {
 					event.preventDefault();
-					// Initiate payment when the submit button is clicked
 					this.pay();
-					});
+				});
 			}
 		});
 
@@ -92,6 +84,11 @@ export class StripePayments implements ComponentFramework.StandardControl<IInput
 	public updateView(context: ComponentFramework.Context<IInputs>): void
 	{
 		// Add code to update control view
+		this.prop_amount 	= context.parameters.Amount.raw || 0;
+		this.prop_currency 	= context.parameters.Currency.raw || "aud";
+		this.prop_description = context.parameters.Description.raw || "";
+		this.prop_ZIP_code	= context.parameters.ZipcodeElement.raw || false;
+		this.prop_customer	= context.parameters.Customer.raw || "";
 	}
 
 	/** 
@@ -147,27 +144,44 @@ export class StripePayments implements ComponentFramework.StandardControl<IInput
 	* Calls stripe.confirmCardPayment which creates a pop-up modal to
 	* prompt the user to enter extra authentication details without leaving your page
 	*/
-	private pay(): void {
-	changeLoadingState(true);
+	private pay(): void 
+	{
+		changeLoadingState(true);
 
-	// Initiate the payment.
-	// If authentication is required, confirmCardPayment will automatically display a modal
-	_stripe
-		.confirmCardPayment(_intent, {
-		payment_method: {
-			card: _card
-		}
-		})
-		.then( (result) => {
-		if (result.error) {
-			// Show error to your customer
-			showError(result.error.message!);
-		} else {
-			// The payment has been processed!
-			orderComplete(_intent);
-		}
-		});
-	};
+		const query_params = 
+			"&amount=" + this.prop_amount * 100 + 
+			"&currency=" + this.prop_currency.toLowerCase() + 
+			"&description=" + encodeURI(this.prop_description.trim().substring(0, 127));
+
+		fetch("https://stripepaymentstest.azurewebsites.net/api/CreatePaymentIntent?code=Qbj06lpwFjnTlYq6UCpHi8Uw2UrZq4eT970dSVjTQIsYcqPTL5Lhvw==" + query_params)
+			.then(response => response.text())
+			.then(data => { 
+				_intent = data; 
+				console.log("Client secret received: " + _intent);
+
+				// Initiate the payment.
+				// If authentication is required, confirmCardPayment will automatically display a modal
+				_stripe
+					.confirmCardPayment(_intent, {
+						payment_method: {
+							card: _card,
+							billing_details: {
+								name: this.prop_customer,
+							},
+						}
+					})
+					.then( (result) => {
+						if (result.error) {
+							// Show error to your customer
+							showError(result.error.message!);
+						} else {
+							// The payment has been processed!
+							orderComplete(_intent);
+						}
+					});
+				
+			});
+	}
 }
 
 /* ------- Post-payment helpers ------- */

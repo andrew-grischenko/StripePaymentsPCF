@@ -5,9 +5,10 @@
   --accent-color: #0a721b;
   --link-color: #ffffff;
   --font-color: rgb(105, 115, 134);
+  --font-size: 1em;
   --body-font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   --radius: 6px;
-  --form-width: 400px;
+  --form-width: 100%;
 }
 
 /* Base */
@@ -16,7 +17,7 @@
 }
 body {
   font-family: var(--body-font-family);
-  font-size: 16px;
+  font-size: var(--font-size);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -51,7 +52,7 @@ body {
 .sr-field-error {
   color: var(--font-color);
   text-align: left;
-  font-size: 13px;
+  font-size: 0.8em;
   line-height: 17px;
   margin: 10px 0px 10px 0px;
 }
@@ -114,6 +115,7 @@ button {
   padding: 12px 16px;
   margin-top: 16px;
   font-weight: 600;
+  font-size: var(--font-size);
   cursor: pointer;
   transition: all 0.2s ease;
   display: block;
@@ -150,7 +152,7 @@ a:active {
 code,
 pre {
   font-family: "SF Mono", "IBM Plex Mono", "Menlo", monospace;
-  font-size: 12px;
+  font-size: 10px;
 }
 
 /* Stripe Element placeholder */
@@ -199,7 +201,7 @@ pre {
 }
 .spinner {
   color: #ffffff;
-  font-size: 22px;
+  font-size: 1.2em;
   text-indent: -99999px;
   margin: 0px auto;
   position: relative;
