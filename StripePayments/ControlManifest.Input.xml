@@ -1,43 +1,17 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <manifest>
-  <control namespace="Technomancy" constructor="StripePayments" version="0.0.4" display-name-key="StripePayments" description-key="StripePayments description" control-type="standard">
-    <!-- property node identifies a specific, configurable piece of data that the control expects from CDS -->
-    <property name="Amount" display-name-key="Amount" description-key="Payment amount" of-type="Currency" usage="bound" required="true" default-value="0"/>
+  <control namespace="Technomancy" constructor="StripePayments3" version="0.1.5" display-name-key="StripePayments3" description-key="StripePayments3 description" control-type="standard">
+    <property name="Amount" display-name-key="Amount" description-key="Payment amount" of-type="Currency" usage="input" required="true" default-value="0"/>
     <property name="Description" display-name-key="Description" description-key="Payment description" of-type="SingleLine.Text" usage="input" required="false" default-value=""/>
     <property name="Currency" display-name-key="Currency" description-key="Payment currency" of-type="SingleLine.Text" usage="input" required="true" default-value="aud"/>
     <property name="ZipcodeElement" display-name-key="ZIP code capture" description-key="Whether to display ZIP code element ot not" of-type="TwoOptions" usage="input" required="true" default-value="0"/>
     <property name="Customer" display-name-key="Customer" description-key="Customer name or reference" of-type="SingleLine.Text" usage="input" required="false" default-value=""/>
-    <!-- 
-      Property node's of-type attribute can be of-type-group attribute. 
-      Example:
-      <type-group name="numbers">
-        <type>Whole.None</type>
-        <type>Currency</type>
-        <type>FP</type>
-        <type>Decimal</type>
-      </type-group>
-      <property name="sampleProperty" display-name-key="Property_Display_Key" description-key="Property_Desc_Key" of-type-group="numbers" usage="bound" required="true" />
-    -->
+    <property name="Reset" display-name-key="Reset" description-key="Reset from start" of-type="TwoOptions" usage="input" required="false" default-value="false"/>
+    <property name="PaymentStatus" display-name-key="PaymentStatus" description-key="Payment status" of-type="SingleLine.Text" usage="bound" required="true" default-value="new"/>
     <resources>
       <code path="index.ts" order="1"/>
       <css path="css/global.css" order="1" />
       <css path="css/normalize.css" order="1" />
-      <!-- UNCOMMENT TO ADD MORE RESOURCES
-      <css path="css/StripePayments.css" order="1" />
-      <resx path="strings/StripePayments.1033.resx" version="1.0.0" />
-      -->
     </resources>
-    <!-- UNCOMMENT TO ENABLE THE SPECIFIED API
-    <feature-usage>
-      <uses-feature name="Device.captureAudio" required="true" />
-      <uses-feature name="Device.captureImage" required="true" />
-      <uses-feature name="Device.captureVideo" required="true" />
-      <uses-feature name="Device.getBarcodeValue" required="true" />
-      <uses-feature name="Device.getCurrentPosition" required="true" />
-      <uses-feature name="Device.pickFile" required="true" />
-      <uses-feature name="Utility" required="true" />
-      <uses-feature name="WebAPI" required="true" />
-    </feature-usage>
-    -->
   </control>
 </manifest>

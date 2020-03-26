@@ -1,18 +1,26 @@
 import {IInputs, IOutputs} from "./generated/ManifestTypes";
 import {Stripe, StripeElements, StripeCardElement, loadStripe} from '@stripe/stripe-js';
 
-var _stripe: Stripe;
-var _elements: StripeElements;
-var _card: StripeCardElement;
-var _intent: string ;
+const STATUS_NEW: string 		= "new";
+const STATUS_ERROR: string 		= "error";
+const STATUS_PROCESSING: string = "processing";
+const STATUS_COMPLETED: string 	= "completed";
 
-export class StripePayments implements ComponentFramework.StandardControl<IInputs, IOutputs> {
+export class StripePayments3 implements ComponentFramework.StandardControl<IInputs, IOutputs> {
 
 	private prop_amount: number;
 	private prop_currency: string;
 	private prop_description: string;
 	private prop_ZIP_code: boolean;
 	private prop_customer: string;
+	private payment_status: string;
+	private has_been_reset: boolean;
+
+	private _stripe: Stripe;
+	private _elements: StripeElements;
+	private _card: StripeCardElement;
+	private _notifyOutputChanged: () => void;
+
 	/**
 	 * Empty constructor.
 	 */
@@ -31,14 +39,18 @@ export class StripePayments implements ComponentFramework.StandardControl<IInput
 	 */
 	public init(context: ComponentFramework.Context<IInputs>, notifyOutputChanged: () => void, state: ComponentFramework.Dictionary, container:HTMLDivElement)
 	{
+		this.has_been_reset = false;
+		this.payment_status = STATUS_NEW;
+		this._notifyOutputChanged = notifyOutputChanged;
+
 		container.appendChild(this.getHTMLElements());
 
 		var stripePromise = loadStripe('pk_test_cyVrfRAcAVqIn5R9NCg0qBVd0023NbM4GD'); 
 
 		stripePromise.then( (stripe)=> {
 			if(stripe){
-				_stripe = stripe;
-				_elements = stripe.elements();
+				this._stripe = stripe;
+				this._elements = stripe.elements();
 
 				var style = {
 					base: {
@@ -55,12 +67,12 @@ export class StripePayments implements ComponentFramework.StandardControl<IInput
 					  }
 					}
 	
-				_card = _elements.create("card", {
+				this._card = this._elements.create("card", {
 					style: style,
 					hidePostalCode: !this.prop_ZIP_code });
-				_card.mount("#card-element");
+				this._card.mount("#card-element");
 
-				_card.on('change', ({error}) => {
+				this._card.on('change', ({error}) => {
 					const displayError = document.getElementById('card-errors');
 					if(displayError)
 							displayError.innerText = (error) ? error.message : "";						
@@ -89,6 +101,13 @@ export class StripePayments implements ComponentFramework.StandardControl<IInput
 		this.prop_description = context.parameters.Description.raw || "";
 		this.prop_ZIP_code	= context.parameters.ZipcodeElement.raw || false;
 		this.prop_customer	= context.parameters.Customer.raw || "";
+		if(context.parameters.Reset.raw && !this.has_been_reset){
+			this.setStatus(STATUS_NEW);
+			this.has_been_reset = true;
+			this._card.clear();
+			this.reset();
+		} else
+			this.has_been_reset = false;
 	}
 
 	/** 
@@ -97,7 +116,7 @@ export class StripePayments implements ComponentFramework.StandardControl<IInput
 	 */
 	public getOutputs(): IOutputs
 	{
-		return {};
+		return { PaymentStatus: this.payment_status };
 	}
 
 	/** 
@@ -126,9 +145,6 @@ export class StripePayments implements ComponentFramework.StandardControl<IInput
 				</form>
 				<div class="sr-result hidden">
 					<p>Payment completed<br /></p>
-					<pre>
-						<code></code>
-					</pre>
 				</div>
 			</div>`;
 		var template = document.createElement('template');
@@ -146,25 +162,30 @@ export class StripePayments implements ComponentFramework.StandardControl<IInput
 	*/
 	private pay(): void 
 	{
-		changeLoadingState(true);
+		this.changeLoadingState(true);
+		this.setStatus(STATUS_PROCESSING);
 
 		const query_params = 
 			"&amount=" + this.prop_amount * 100 + 
-			"&currency=" + this.prop_currency.toLowerCase() + 
+			"&currency=" + this.prop_currency + 
 			"&description=" + encodeURI(this.prop_description.trim().substring(0, 127));
 
 		fetch("https://stripepaymentstest.azurewebsites.net/api/CreatePaymentIntent?code=Qbj06lpwFjnTlYq6UCpHi8Uw2UrZq4eT970dSVjTQIsYcqPTL5Lhvw==" + query_params)
-			.then(response => response.text())
+			.then( response => {
+				if(!response.ok) 
+					throw response;
+				else
+					return response.text();
+			})
 			.then(data => { 
-				_intent = data; 
-				console.log("Client secret received: " + _intent);
+				const intent = data; 
 
 				// Initiate the payment.
 				// If authentication is required, confirmCardPayment will automatically display a modal
-				_stripe
-					.confirmCardPayment(_intent, {
+				this._stripe
+					.confirmCardPayment(intent, {
 						payment_method: {
-							card: _card,
+							card: this._card,
 							billing_details: {
 								name: this.prop_customer,
 							},
@@ -173,56 +194,67 @@ export class StripePayments implements ComponentFramework.StandardControl<IInput
 					.then( (result) => {
 						if (result.error) {
 							// Show error to your customer
-							showError(result.error.message!);
+							this.setStatus(STATUS_ERROR);
+							this.showError(result.error.message!);
 						} else {
 							// The payment has been processed!
-							orderComplete(_intent);
+							this.setStatus(STATUS_COMPLETED);
+							this._notifyOutputChanged();
+							this.orderComplete();
 						}
 					});
 				
+			})
+			.catch( err => {
+				err.text().then( (errorMessage: string) => {
+					this.setStatus(STATUS_ERROR);
+					this.showError("There was an error setting up payment: " + errorMessage);
+				})
 			});
 	}
-}
 
-/* ------- Post-payment helpers ------- */
+	private setStatus(status:string )
+	{
+		this.payment_status = status;
+		this._notifyOutputChanged();
+	}
 
-function showError(errorMsgText: string): void {
-	changeLoadingState(false);
-	var errorMsg = document.querySelector(".sr-field-error");
-	errorMsg!.textContent = errorMsgText;
-	setTimeout(() => {
-	  errorMsg!.textContent = "";
-	}, 4000);
-}
+	/* ------- Post-payment helpers ------- */
 
-/* Shows a success / error message when the payment is complete */
-function orderComplete(clientSecret: string) {
-  // Just for the purpose of the sample, show the PaymentIntent response object
-  _stripe.retrievePaymentIntent(clientSecret).then(function(result) {
-    var paymentIntent = result.paymentIntent;
-    var paymentIntentJson = JSON.stringify(paymentIntent, null, 2);
+	private showError(errorMsgText: string): void {
+		this.changeLoadingState(false);
+		var errorMsg = document.querySelector(".sr-field-error");
+		errorMsg!.textContent = errorMsgText;
+		setTimeout(() => {
+		errorMsg!.textContent = "";
+		}, 4000);
+	}
 
-    document.querySelector(".sr-payment-form")!.classList.add("hidden");
-    document.querySelector("pre")!.textContent = paymentIntentJson;
+	/* Shows a success / error message when the payment is complete */
+	private orderComplete() {
+		document.querySelector(".sr-payment-form")!.classList.add("hidden");
+		document.querySelector(".sr-result")!.classList.remove("hidden");
+		this.changeLoadingState(false);
+	}
 
-    document.querySelector(".sr-result")!.classList.remove("hidden");
-    setTimeout(function() {
-      document.querySelector(".sr-result")!.classList.add("expand");
-    }, 200);
+	// Resets the form status to new
+	private reset() {
+		document.querySelector(".sr-payment-form")!.classList.remove("hidden");
+		document.querySelector(".sr-result")!.classList.add("hidden");
+		this.changeLoadingState(false);
+	}
 
-    changeLoadingState(false);
-  });
-}
 
-// Show a spinner on payment submission
-function changeLoadingState(isLoading: boolean) {
-	if (isLoading) {
-		document.querySelector("button")!.disabled = true;
-		document.querySelector("#spinner")!.classList.remove("hidden");
-		document.querySelector("#button-text")!.classList.add("hidden");
-	} else {
-		document.querySelector("button")!.disabled = false;
-		document.querySelector("#spinner")!.classList.add("hidden");
-		document.querySelector("#button-text")!.classList.remove("hidden");
+	// Show a spinner on payment submission
+	private changeLoadingState(isLoading: boolean) {
+		if (isLoading) {
+			document.querySelector("button")!.disabled = true;
+			document.querySelector("#spinner")!.classList.remove("hidden");
+			document.querySelector("#button-text")!.classList.add("hidden");
+		} else {
+			document.querySelector("button")!.disabled = false;
+			document.querySelector("#spinner")!.classList.add("hidden");
+			document.querySelector("#button-text")!.classList.remove("hidden");
+		}
 	}
 }
