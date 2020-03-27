@@ -191,13 +191,18 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 
 			if(this._stripe && this._card && this.payment_intent_client_secret)
 			{
-				this._stripe.confirmCardPayment(this.payment_intent_client_secret, 
+				this._stripe.confirmCardPayment(this.payment_intent_client_secret, (this.prop_customer) ? 
 					{
 						payment_method: {
 							card: this._card,
 							billing_details: {
-								name: this.prop_customer,
-							},
+								name: this.prop_customer
+							}
+						}
+					} : 
+					{
+						payment_method: {
+							card: this._card
 						}
 					})
 					.then( (result) => {
@@ -207,9 +212,8 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 							this.showError(result.error.message!);
 						} else {
 							// The payment has been processed!
-							this.setStatus(STATUS_COMPLETED);
-							this._notifyOutputChanged();
 							this.orderComplete();
+							this.setStatus(STATUS_COMPLETED);
 						}
 					});
 			} else
