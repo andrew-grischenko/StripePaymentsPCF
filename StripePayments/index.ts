@@ -8,17 +8,16 @@ const STATUS_COMPLETED: string 	= "completed";
 
 export class StripePayments3 implements ComponentFramework.StandardControl<IInputs, IOutputs> {
 
-	private prop_amount: number;
-	private prop_currency: string;
-	private prop_description: string;
 	private prop_ZIP_code: boolean;
 	private prop_customer: string;
 	private payment_status: string;
 	private has_been_reset: boolean;
+	private stripe_client_key: string;
+	private payment_intent_client_secret: string;
 
-	private _stripe: Stripe;
-	private _elements: StripeElements;
-	private _card: StripeCardElement;
+	private _stripe?: Stripe;
+	private _elements?: StripeElements;
+	private _card?: StripeCardElement;
 	private _notifyOutputChanged: () => void;
 
 	/**
@@ -42,10 +41,20 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 		this.has_been_reset = false;
 		this.payment_status = STATUS_NEW;
 		this._notifyOutputChanged = notifyOutputChanged;
-
 		container.appendChild(this.getHTMLElements());
 
-		var stripePromise = loadStripe('pk_test_cyVrfRAcAVqIn5R9NCg0qBVd0023NbM4GD'); 
+		if(this.stripe_client_key)
+			this.initStripeClient();
+
+		(<HTMLFormElement>document.getElementById("payment-form")!).addEventListener("submit", (event) => {
+			event.preventDefault();
+			this.pay();
+		});
+	}
+
+	private initStripeClient()
+	{
+		var stripePromise = loadStripe(this.stripe_client_key); 
 
 		stripePromise.then( (stripe)=> {
 			if(stripe){
@@ -77,15 +86,18 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 					if(displayError)
 							displayError.innerText = (error) ? error.message : "";						
 				  });
-
-				// Handle form submission.
-				(<HTMLFormElement>document.getElementById("payment-form")!).addEventListener("submit", (event) => {
-					event.preventDefault();
-					this.pay();
-				});
 			}
 		});
+	}
 
+	private cleanupStripeClient()
+	{
+		if(this._card)
+			this._card.destroy;
+
+		this._card = undefined;
+		this._elements = undefined;
+		this._stripe = undefined;
 	}
 
 
@@ -95,16 +107,23 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 	 */
 	public updateView(context: ComponentFramework.Context<IInputs>): void
 	{
-		// Add code to update control view
-		this.prop_amount 	= context.parameters.Amount.raw || 0;
-		this.prop_currency 	= context.parameters.Currency.raw || "aud";
-		this.prop_description = context.parameters.Description.raw || "";
 		this.prop_ZIP_code	= context.parameters.ZipcodeElement.raw || false;
 		this.prop_customer	= context.parameters.Customer.raw || "";
+		this.payment_intent_client_secret = context.parameters.PaymentIntentClientSecret.raw || "";
+		this.stripe_client_key = context.parameters.StripeClientKey.raw || "";
+
+		if(!this._stripe && this.stripe_client_key)
+			this.initStripeClient();
+
+		if(this._stripe && !this.stripe_client_key)
+			this.cleanupStripeClient();
+
 		if(context.parameters.Reset.raw && !this.has_been_reset){
 			this.setStatus(STATUS_NEW);
 			this.has_been_reset = true;
-			this._card.clear();
+			if(this._card)
+				this._card.clear();
+
 			this.reset();
 		} else
 			this.has_been_reset = false;
@@ -125,7 +144,7 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 	 */
 	public destroy(): void
 	{
-		// Add code to cleanup control if necessary
+		this.cleanupStripeClient();
 	}
 
 	private getHTMLElements(): DocumentFragment 
@@ -153,9 +172,6 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 		return template.content;
 	}
 
-
-
-
 	/*
 	* Calls stripe.confirmCardPayment which creates a pop-up modal to
 	* prompt the user to enter extra authentication details without leaving your page
@@ -164,26 +180,19 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 	{
 		this.changeLoadingState(true);
 		this.setStatus(STATUS_PROCESSING);
-
-		const query_params = 
-			"&amount=" + this.prop_amount * 100 + 
-			"&currency=" + this.prop_currency + 
-			"&description=" + encodeURI(this.prop_description.trim().substring(0, 127));
-
-		fetch("https://stripepaymentstest.azurewebsites.net/api/CreatePaymentIntent?code=Qbj06lpwFjnTlYq6UCpHi8Uw2UrZq4eT970dSVjTQIsYcqPTL5Lhvw==" + query_params)
-			.then( response => {
-				if(!response.ok) 
-					throw response;
+		
+		try 
+		{
+			if(!this._stripe)
+				if(this.stripe_client_key)
+					this.initStripeClient();
 				else
-					return response.text();
-			})
-			.then(data => { 
-				const intent = data; 
+					throw "ERROR: No PaymentIntentClientSecret specified";
 
-				// Initiate the payment.
-				// If authentication is required, confirmCardPayment will automatically display a modal
-				this._stripe
-					.confirmCardPayment(intent, {
+			if(this._stripe && this._card && this.payment_intent_client_secret)
+			{
+				this._stripe.confirmCardPayment(this.payment_intent_client_secret, 
+					{
 						payment_method: {
 							card: this._card,
 							billing_details: {
@@ -203,14 +212,14 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 							this.orderComplete();
 						}
 					});
-				
-			})
-			.catch( err => {
-				err.text().then( (errorMessage: string) => {
-					this.setStatus(STATUS_ERROR);
-					this.showError("There was an error setting up payment: " + errorMessage);
-				})
-			});
+			} else
+				throw "ERROR: Not initialised Stripe client or empty PaymentIntentClientSecret";
+		}
+		catch (err) {
+			this.setStatus(STATUS_ERROR);
+			console.log(err.message);
+			this.showError("The payment component has not been initialised properly. Did you set correct StripeClientKey and valid PaymentIntentClientSecret?");
+		}
 	}
 
 	private setStatus(status:string )
