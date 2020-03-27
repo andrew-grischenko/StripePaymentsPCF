@@ -86,12 +86,18 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 					if(displayError)
 							displayError.innerText = (error) ? error.message : "";						
 				  });
+
+				document.querySelector("#sr-not-initialised")!.classList.add("hidden");
+				document.querySelector("#payment-form")!.classList.remove("hidden");
+
 			}
 		});
 	}
 
 	private cleanupStripeClient()
 	{
+		document.querySelector("#sr-not-initialised")!.classList.remove("hidden");
+		document.querySelector("#payment-form")!.classList.add("hidden");
 		if(this._card)
 			this._card.destroy;
 
@@ -151,7 +157,10 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 	{
 		let html = `   
 			<div class="sr-main">
-				<form id="payment-form" class="sr-payment-form">
+				<div id="sr-not-initialised" class="sr-result">
+					<p>The component has not been initialised: set the StripeClientKey property</p>
+				</div>
+				<form id="payment-form" class="sr-payment-form hidden">
 					<div class="sr-combo-inputs-row">
 						<div class="sr-input sr-card-element" id="card-element"></div>
 					</div>

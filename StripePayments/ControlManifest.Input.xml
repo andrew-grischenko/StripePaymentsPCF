@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <manifest>
-  <control namespace="Technomancy" constructor="StripePayments3" version="0.1.6" display-name-key="StripePayments3" description-key="StripePayments3 description" control-type="standard">
+  <control namespace="Technomancy" constructor="StripePayments3" version="0.1.8" display-name-key="StripePayments3" description-key="StripePayments3 description" control-type="standard">
     <property name="ZipcodeElement" display-name-key="ZIP code capture" description-key="Whether to display ZIP code element ot not" of-type="TwoOptions" usage="input" required="true" default-value="0"/>
     <property name="Customer" display-name-key="Customer" description-key="Customer name or reference" of-type="SingleLine.Text" usage="input" required="false" default-value=""/>
     <property name="Reset" display-name-key="Reset" description-key="Reset from start" of-type="TwoOptions" usage="input" required="false" default-value="false"/>

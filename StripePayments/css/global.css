@@ -5,18 +5,19 @@
   --accent-color: #0a721b;
   --link-color: #ffffff;
   --font-color: rgb(105, 115, 134);
-  --font-size: 1em;
+  --font-size: 18pt;
   --body-font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   --radius: 6px;
 }
 
 /* Base */
-* {
+.sr-main * {
   box-sizing: border-box;
 }
 
 
 .sr-main {
+  box-sizing: border-box;
   font-family: var(--body-font-family);
   font-size: var(--font-size);
   -webkit-font-smoothing: antialiased;
