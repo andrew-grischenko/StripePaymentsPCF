@@ -65,6 +65,7 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 					base: {
 						color: "#32325d",
 						fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+						fontSize: '18pt',
 						fontSmoothing: "antialiased",
 						"::placeholder": {
 						  color: "#aab7c4"
