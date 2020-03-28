@@ -14,6 +14,9 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 	private has_been_reset: boolean;
 	private stripe_client_key: string;
 	private payment_intent_client_secret: string;
+	private card_font_size: number;
+	private button_font_size: number;
+	private error_font_size: number;
 
 	private _stripe?: Stripe;
 	private _elements?: StripeElements;
@@ -43,9 +46,6 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 		this._notifyOutputChanged = notifyOutputChanged;
 		container.appendChild(this.getHTMLElements());
 
-		if(this.stripe_client_key)
-			this.initStripeClient();
-
 		(<HTMLFormElement>document.getElementById("payment-form")!).addEventListener("submit", (event) => {
 			event.preventDefault();
 			this.pay();
@@ -61,38 +61,51 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 				this._stripe = stripe;
 				this._elements = stripe.elements();
 
-				var style = {
-					base: {
-						color: "#32325d",
-						fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
-						fontSize: '18pt',
-						fontSmoothing: "antialiased",
-						"::placeholder": {
-						  color: "#aab7c4"
-						}
-					  },
-					  invalid: {
-						color: "#fa755a",
-						iconColor: "#fa755a"
-					  }
-					}
-	
-				this._card = this._elements.create("card", {
-					style: style,
-					hidePostalCode: !this.prop_ZIP_code });
-				this._card.mount("#card-element");
-
-				this._card.on('change', ({error}) => {
-					const displayError = document.getElementById('card-errors');
-					if(displayError)
-							displayError.innerText = (error) ? error.message : "";						
-				  });
+				this.createCardElement();
 
 				document.querySelector("#sr-not-initialised")!.classList.add("hidden");
 				document.querySelector("#payment-form")!.classList.remove("hidden");
 
 			}
 		});
+	}
+
+	private createCardElement()
+	{
+		if(this._elements)
+		{
+			console.log("Recreating card element.");
+			this._card = this._elements.create("card", this.getCardElementOptions());
+			this._card.mount("#card-element");
+			this._card.on('change', ({error}) => {
+				const displayError = document.getElementById('card-errors');
+				if(displayError)
+						displayError.innerText = (error) ? error.message : "";						
+			});
+		}
+	}
+
+	private getCardElementOptions(): object
+	{
+		return {
+			style: {
+				base: {
+					color: "#32325d",
+					fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+					fontSize: this.card_font_size + 'pt',
+					fontSmoothing: "antialiased",
+					"::placeholder": {
+						color: "#aab7c4"
+						}
+					},
+				invalid: {
+					color: "#fa755a",
+					iconColor: "#fa755a"
+					}
+
+			},
+			hidePostalCode: !this.prop_ZIP_code
+		}
 	}
 
 	private cleanupStripeClient()
@@ -114,16 +127,42 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 	 */
 	public updateView(context: ComponentFramework.Context<IInputs>): void
 	{
-		this.prop_ZIP_code	= context.parameters.ZipcodeElement.raw || false;
 		this.prop_customer	= context.parameters.Customer.raw || "";
 		this.payment_intent_client_secret = context.parameters.PaymentIntentClientSecret.raw || "";
-		this.stripe_client_key = context.parameters.StripeClientKey.raw || "";
 
-		if(!this._stripe && this.stripe_client_key)
-			this.initStripeClient();
-
-		if(this._stripe && !this.stripe_client_key)
+		if(this.stripe_client_key != context.parameters.StripeClientKey.raw)
+		{
+			this.stripe_client_key = context.parameters.StripeClientKey.raw || "";
 			this.cleanupStripeClient();
+
+			if(!this._stripe && this.stripe_client_key)
+				this.initStripeClient();
+
+		}
+
+		if(this.card_font_size != context.parameters.CardFontSize.raw ||
+		   this.prop_ZIP_code  != context.parameters.ZipcodeElement.raw ||
+		   this.error_font_size != context.parameters.ErrorFontSize.raw )
+		{
+			this.prop_ZIP_code	= context.parameters.ZipcodeElement.raw || false;
+			this.card_font_size = context.parameters.CardFontSize.raw || 20;
+			if(this._card)
+				this._card.destroy();
+			
+			this.createCardElement();
+		}
+
+		if(this.button_font_size != context.parameters.ButtonFontSize.raw)
+		{
+			this.button_font_size = context.parameters.ButtonFontSize.raw || 20;
+			document.documentElement.style.setProperty("--button-font-size", this.button_font_size + "pt"); 
+		}
+
+		if(this.error_font_size != context.parameters.ErrorFontSize.raw)
+		{
+			this.error_font_size = context.parameters.ErrorFontSize.raw || 20;
+			document.documentElement.style.setProperty("--error-font-size", this.error_font_size + "pt"); 
+		}
 
 		if(context.parameters.Reset.raw && !this.has_been_reset){
 			this.setStatus(STATUS_NEW);

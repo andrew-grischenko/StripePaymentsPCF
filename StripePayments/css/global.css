@@ -5,7 +5,9 @@
   --accent-color: rgb(31, 55, 187);
   --link-color: #ffffff;
   --font-color: rgb(105, 115, 134);
-  --font-size: 18pt;
+  --font-size: 20pt;
+  --button-font-size: 20pt;
+  --error-font-size: 20pt;
   --body-font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   --radius: 6px;
 }
@@ -41,9 +43,10 @@
 .sr-field-error {
   color: var(--font-color);
   text-align: left;
-  font-size: 0.8em;
+  font-size: var(--error-font-size);
   line-height: 17px;
-  margin: 10px 0px 10px 0px;
+  padding: 10px 0px;
+  margin: 10px 0px;
 }
 
 /* Inputs */
@@ -52,7 +55,6 @@
   border: 1px solid var(--gray-border);
   border-radius: var(--radius);
   padding: 5px 12px;
-  height: 44px;
   width: 100%;
   transition: box-shadow 0.2s ease;
   background: white;
@@ -104,7 +106,7 @@
   padding: 12px 16px;
   margin-top: 16px;
   font-weight: 600;
-  font-size: var(--font-size);
+  font-size: var(--button-font-size);
   cursor: pointer;
   transition: all 0.2s ease;
   display: block;
@@ -144,12 +146,6 @@
 
 /* Responsiveness */
 @media (max-width: 720px) {
-  .sr-root {
-    flex-direction: column;
-    justify-content: flex-start;
-    padding: 48px 20px;
-    min-width: 320px;
-  }
 
   .sr-header__logo {
     background-position: center;
@@ -163,15 +159,6 @@
     display: none;
   }
 
-  .sr-main {
-    width: 100%;
-    height: 305px;
-    background: rgb(247, 250, 252);
-    box-shadow: 0px 0px 0px 0.5px rgba(50, 50, 93, 0.1),
-      0px 2px 5px 0px rgba(50, 50, 93, 0.1),
-      0px 1px 1.5px 0px rgba(0, 0, 0, 0.07);
-    border-radius: 6px;
-  }
 }
 
 /* todo: spinner/processing state, errors, animations */
