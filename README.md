@@ -8,7 +8,7 @@ Before you negin, create a Stripe account here: https://dashboard.stripe.com/reg
 
 ### Import as a solution package
 
-Download and import the managed solution package [**PowerAppsTools_tema.zip**](/andrew-grischenko/StripePaymentsPCF/tree/master/build/PowerAppsTools_tema.zip). As a result, you should get the solution **PowerAppsTools_tema** containing:
+Download and import the managed solution package [**PowerAppsTools_tema.zip**](/andrew-grischenko/StripePaymentsPCF/blob/master/build/PowerAppsTools_tema.zip). As a result, you should get the solution **PowerAppsTools_tema** containing:
 * Custom connector **StripePaymentIntents**  
 * Code PCF component **tema_Technomancy.StripePayments3** hosting the credit capture form from Stripe
 * Demo canvas Power App **StripePaymentsDemo** using the above two
@@ -26,7 +26,7 @@ Prerequsites:
 2. Clone the repository https://github.com/andrew-grischenko/StripePaymentsPCF into a folder
 3. Run the commands in the folder 
 
-      npm install 
+       npm install 
 
 4. Follow the instruction here on how to
 
