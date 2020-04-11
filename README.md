@@ -4,11 +4,35 @@ This is a simple PCF control and a customer connector that allow to facilitate c
 
 ## Install and Use
 
-1. Create a Stripe account here: https://dashboard.stripe.com/register – it’s free for testing purposes. 
-2. Import the managed solution package into the environment as per the usual process. As a result, you should get the following:
-* Custom connector to the Stripe PaymentIntents API
-* Code PCF component hosting the credit capture form from Stripe
-* Demo canvas PowerApp using the above two
+Before you negin, create a Stripe account here: https://dashboard.stripe.com/register – it’s free for testing purposes. You will need it to facilitate the payments.
+
+### Import as a solution package
+
+Download and import the managed solution package [**PowerAppsTools_tema.zip**](/andrew-grischenko/StripePaymentsPCF/tree/master/build/PowerAppsTools_tema.zip). As a result, you should get the solution **PowerAppsTools_tema** containing:
+* Custom connector **StripePaymentIntents**  
+* Code PCF component **tema_Technomancy.StripePayments3** hosting the credit capture form from Stripe
+* Demo canvas Power App **StripePaymentsDemo** using the above two
+
+Skip the next section *"Build from the source"* if you just want to set up and use the solution. 
+
+### Build from the source
+
+Prerequsites: 
+* NPM 
+* Windows OS
+* VS Code
+
+1. Install Power Apps CLI and all its dependencies as described here: https://docs.microsoft.com/en-us/powerapps/developer/common-data-service/powerapps-cli 
+2. Clone the repository https://github.com/andrew-grischenko/StripePaymentsPCF into a folder
+3. Run the commands in the folder 
+
+      npm install 
+
+4. Follow the instruction here on how to
+
+* build and test the component: https://docs.microsoft.com/en-us/powerapps/developer/component-framework/implementing-controls-using-typescript 
+* packgae and deploy the component: https://docs.microsoft.com/en-us/powerapps/developer/component-framework/import-custom-controls 
+
 
 ### Set up the custom connector StripePaymentIntents ###
 
