@@ -43,8 +43,8 @@
 .sr-field-error {
   color: var(--font-color);
   text-align: left;
+  color: #cf5d5d;
   font-size: var(--error-font-size);
-  line-height: 17px;
   padding: 10px 0px;
   margin: 10px 0px;
 }
