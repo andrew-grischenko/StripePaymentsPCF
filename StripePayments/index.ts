@@ -268,7 +268,7 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 			} else
 				throw "ERROR: Not initialised Stripe client or empty PaymentIntentClientSecret";
 		}
-		catch (err) {
+		catch (err: any) {
 			this.setStatus(STATUS_ERROR);
 			console.log(err.message);
 			this.showError("The payment component has not been initialised properly. Did you set correct StripeClientKey and valid PaymentIntentClientSecret?");
