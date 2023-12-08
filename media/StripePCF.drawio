@@ -1,0 +1,92 @@
+<mxfile host="app.diagrams.net" modified="2023-12-08T00:58:48.484Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36" etag="fo9pI7Ies-hPqdj35uhZ" version="22.1.7" type="device">
+  <diagram name="Page-1" id="YK-pfHPdKx7qEnu1WTOo">
+    <mxGraphModel dx="850" dy="462" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="NbER_oGzelUaYVv-6PKc-1" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="120" y="280" width="200" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="NbER_oGzelUaYVv-6PKc-2" value="Stripe Intent Connector" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="145" y="305" width="150" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="NbER_oGzelUaYVv-6PKc-3" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="360" y="280" width="200" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="NbER_oGzelUaYVv-6PKc-4" value="Stripe PCF control" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="385" y="305" width="150" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="NbER_oGzelUaYVv-6PKc-5" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="240" y="120" width="200" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="NbER_oGzelUaYVv-6PKc-6" value="Stripe demo Canvas App" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="265" y="145" width="150" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="NbER_oGzelUaYVv-6PKc-7" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;" edge="1" parent="1" source="NbER_oGzelUaYVv-6PKc-5" target="NbER_oGzelUaYVv-6PKc-3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="560" y="190" as="sourcePoint" />
+            <mxPoint x="610" y="140" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NbER_oGzelUaYVv-6PKc-8" value="uses" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="NbER_oGzelUaYVv-6PKc-7">
+          <mxGeometry x="0.0426" y="-1" relative="1" as="geometry">
+            <mxPoint x="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NbER_oGzelUaYVv-6PKc-9" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;" edge="1" parent="1" source="NbER_oGzelUaYVv-6PKc-5" target="NbER_oGzelUaYVv-6PKc-1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="210" as="sourcePoint" />
+            <mxPoint x="470" y="290" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NbER_oGzelUaYVv-6PKc-10" value="uses" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="NbER_oGzelUaYVv-6PKc-9">
+          <mxGeometry x="0.0426" y="-1" relative="1" as="geometry">
+            <mxPoint x="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NbER_oGzelUaYVv-6PKc-11" value="" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="440" width="440" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="NbER_oGzelUaYVv-6PKc-12" value="Stripe Payment Intent APIs" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="160" y="445" width="260" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="NbER_oGzelUaYVv-6PKc-18" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.226;entryY=-0.024;entryDx=0;entryDy=0;entryPerimeter=0;strokeWidth=2;" edge="1" parent="1" source="NbER_oGzelUaYVv-6PKc-1" target="NbER_oGzelUaYVv-6PKc-11">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="390" y="300" as="sourcePoint" />
+            <mxPoint x="440" y="250" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NbER_oGzelUaYVv-6PKc-20" value="calls" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="NbER_oGzelUaYVv-6PKc-18">
+          <mxGeometry x="0.0101" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NbER_oGzelUaYVv-6PKc-19" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.658;entryY=-0.003;entryDx=0;entryDy=0;entryPerimeter=0;strokeWidth=2;" edge="1" parent="1" source="NbER_oGzelUaYVv-6PKc-3" target="NbER_oGzelUaYVv-6PKc-11">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="230" y="370" as="sourcePoint" />
+            <mxPoint x="229" y="452" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NbER_oGzelUaYVv-6PKc-21" value="calls" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="NbER_oGzelUaYVv-6PKc-19">
+          <mxGeometry x="0.0312" y="-3" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NbER_oGzelUaYVv-6PKc-22" value="Elements JS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="430" y="447.5" width="120" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="NbER_oGzelUaYVv-6PKc-23" value="" style="endArrow=classic;html=1;rounded=0;dashed=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.666;entryY=0.029;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="NbER_oGzelUaYVv-6PKc-3" target="NbER_oGzelUaYVv-6PKc-22">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="630" y="370" as="sourcePoint" />
+            <mxPoint x="680" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NbER_oGzelUaYVv-6PKc-24" value="loads" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="NbER_oGzelUaYVv-6PKc-23">
+          <mxGeometry x="0.0478" y="-3" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
