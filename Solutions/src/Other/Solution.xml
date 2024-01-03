@@ -5,7 +5,7 @@
     <UniqueName>StripePCF</UniqueName>
     <LocalizedNames>
       <!-- Localized Solution Name in language code -->
-      <LocalizedName description="Stripe Power Apps custom component (PCF)" languagecode="1033" />
+      <LocalizedName description="Stripe PCF" languagecode="1033" />
     </LocalizedNames>
     <Descriptions />
     <Version>1.0</Version>
@@ -27,7 +27,7 @@
       <!-- Customization Prefix for the Cds Publisher-->
       <CustomizationPrefix>tema</CustomizationPrefix>
       <!-- Derived Option Value Prefix for the Customization Prefix of Cds Publisher -->
-      <CustomizationOptionValuePrefix>79791</CustomizationOptionValuePrefix>
+      <CustomizationOptionValuePrefix>69858</CustomizationOptionValuePrefix>
       <Addresses>
         <!-- Address of the Publisher-->
         <Address>
