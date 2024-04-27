@@ -3,6 +3,7 @@ import {Stripe, StripeElements, StripeCardElement, loadStripe} from '@stripe/str
 
 const STATUS_NEW: string 		= "new";
 const STATUS_ERROR: string 		= "error";
+const STATUS_SUBMITTED: string = "submitted";
 const STATUS_PROCESSING: string = "processing";
 const STATUS_COMPLETED: string 	= "completed";
 
@@ -17,6 +18,9 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 	private card_font_size: number;
 	private button_font_size: number;
 	private error_font_size: number;
+	private isMoto: boolean;
+	private isAutoConfirm: boolean;
+	private paymentMethodId: string;
 
 	private _stripe?: Stripe;
 	private _elements?: StripeElements;
@@ -129,6 +133,8 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 	{
 		this.prop_customer	= context.parameters.Customer.raw || "";
 		this.payment_intent_client_secret = context.parameters.PaymentIntentClientSecret.raw || "";
+		this.isMoto = context.parameters.Moto.raw || false;
+		this.isAutoConfirm = context.parameters.AutoConfirm.raw || false;
 
 		if(this.stripe_client_key != context.parameters.StripeClientKey.raw)
 		{
@@ -181,7 +187,10 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 	 */
 	public getOutputs(): IOutputs
 	{
-		return { PaymentStatus: this.payment_status };
+		return { 
+			PaymentStatus: this.payment_status,
+			PaymentMethodId: this.paymentMethodId,
+		 };
 	}
 
 	/** 
@@ -238,35 +247,62 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 				else
 					throw "ERROR: No PaymentIntentClientSecret specified";
 
-			if(this._stripe && this._card && this.payment_intent_client_secret)
-			{
-				this._stripe.confirmCardPayment(this.payment_intent_client_secret, (this.prop_customer) ? 
+					if(	this._stripe && 
+							this._card && 
+							!this.isAutoConfirm &&
+							this.payment_intent_client_secret)
 					{
-						payment_method: {
-							card: this._card,
+						this._stripe.confirmCardPayment(this.payment_intent_client_secret, (this.prop_customer) ? 
+							{
+								payment_method: {
+									card: this._card,
+									billing_details: {
+										name: this.prop_customer
+									}
+								}
+							} : 
+							{
+								payment_method: {
+									card: this._card
+								}
+							})
+							.then( (result) => {
+								if (result.error) {
+									// Show error to your customer
+									this.setStatus(STATUS_ERROR);
+									this.showError(result.error.message!);
+								} else {
+									// The payment has been processed!
+									this.orderComplete();
+									this.setStatus(STATUS_COMPLETED);
+								}
+							});
+					} else 
+					if(this._stripe && 
+						this._card && 
+						this.isAutoConfirm)
+					{
+						this._stripe.createPaymentMethod(						
+						{
+							type: 'card',
+							card: this._card!,
 							billing_details: {
-								name: this.prop_customer
+								// Include any additional collected billing details.
+								name: this.prop_customer ? this.prop_customer : ""
 							}
-						}
-					} : 
-					{
-						payment_method: {
-							card: this._card
-						}
-					})
-					.then( (result) => {
-						if (result.error) {
-							// Show error to your customer
-							this.setStatus(STATUS_ERROR);
-							this.showError(result.error.message!);
-						} else {
-							// The payment has been processed!
-							this.orderComplete();
-							this.setStatus(STATUS_COMPLETED);
-						}
-					});
-			} else
-				throw "ERROR: Not initialised Stripe client or empty PaymentIntentClientSecret";
+						})
+						.then((result)=>{
+							this._elements?.submit()
+							.then( () => {
+								if(result.paymentMethod) {
+									this.paymentMethodId = result.paymentMethod.id;
+									this.detailsSubmitted();
+								} else 
+									throw "ERROR: No Payment method data returned from Stripe (unexpected)";
+							})
+						});	
+					} else
+						throw "ERROR: Not initialised Stripe client or empty PaymentIntentClientSecret";
 		}
 		catch (err: any) {
 			this.setStatus(STATUS_ERROR);
@@ -296,6 +332,12 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 	private orderComplete() {
 		document.querySelector(".sr-payment-form")!.classList.add("hidden");
 		document.querySelector(".sr-result")!.classList.remove("hidden");
+		this.changeLoadingState(false);
+	}
+
+	/* Neutral state when payment details have been submitted */
+	private detailsSubmitted() {
+		this.setStatus(STATUS_SUBMITTED);
 		this.changeLoadingState(false);
 	}
 
