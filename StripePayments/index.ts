@@ -18,7 +18,6 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 	private card_font_size: number;
 	private button_font_size: number;
 	private error_font_size: number;
-	private isMoto: boolean;
 	private isAutoConfirm: boolean;
 	private paymentMethodId: string;
 
@@ -133,7 +132,6 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 	{
 		this.prop_customer	= context.parameters.Customer.raw || "";
 		this.payment_intent_client_secret = context.parameters.PaymentIntentClientSecret.raw || "";
-		this.isMoto = context.parameters.Moto.raw || false;
 		this.isAutoConfirm = context.parameters.AutoConfirm.raw || false;
 
 		if(this.stripe_client_key != context.parameters.StripeClientKey.raw)
@@ -306,6 +304,7 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 		}
 		catch (err: any) {
 			this.setStatus(STATUS_ERROR);
+			console.log(err);
 			console.log(err.message);
 			this.showError("The payment component has not been initialised properly. Did you set correct StripeClientKey and valid PaymentIntentClientSecret?");
 		}
@@ -338,7 +337,9 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 	/* Neutral state when payment details have been submitted */
 	private detailsSubmitted() {
 		this.setStatus(STATUS_SUBMITTED);
-		this.changeLoadingState(false);
+		document.querySelector("#spinner")!.classList.add("hidden");
+		document.querySelector("button")!.disabled = true;
+		document.querySelector("span#button-text")!.innerHTML = "Submitted";
 	}
 
 	// Resets the form status to new
@@ -355,10 +356,12 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 			document.querySelector("button")!.disabled = true;
 			document.querySelector("#spinner")!.classList.remove("hidden");
 			document.querySelector("#button-text")!.classList.add("hidden");
+			document.querySelector("span#button-text")!.innerHTML = "Processing";
 		} else {
 			document.querySelector("button")!.disabled = false;
 			document.querySelector("#spinner")!.classList.add("hidden");
 			document.querySelector("#button-text")!.classList.remove("hidden");
+			document.querySelector("button")!.innerHTML = "Pay";
 		}
 	}
 }
