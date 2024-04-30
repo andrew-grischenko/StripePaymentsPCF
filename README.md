@@ -3,7 +3,9 @@
 This repo contains a solution for processing credit card payments via canvas Power Apps in Power Platform. It consists of:
 * PowerApps Component Framework (PCF) control **tema_Technomancy.StripePayments3** embedding Stripe Elements UI and logic. 
 * Custom connector **StripePaymentIntents** that integrates for Payment Intent Stripe API
-* A simple demo canvas Power App **StripePaymentsDemo** showing how to use these to process card payments.
+* Two simple demo canvas Power Apps:
+* * **StripePaymentsDemo** showing how to use these to process card payments.
+* * **DonationsDemo** showing the process of auto-confirma payments and [MOTO (mail order / telephone order)](https://support.stripe.com/questions/mail-order-telephone-order-(moto)-transactions-when-to-categorize-transactions-as-moto) transactions. 
 
 ![Solution components](./media/StripePCF.png)
 
@@ -18,11 +20,11 @@ You may install the components of this solution in 2 ways:
 ### Import the pre-packaged Power Platform solutions
 
 Download and import the solution packages including the custom connector and PCF component:
-* [Download managed solution](build/StripePCF_1_3_managed.zip)
-* [Download unmanaged solution](build/StripePCF_1_3.zip)
+* [Download managed solution](build/StripePCF_1_4_managed.zip)
+* [Download unmanaged solution](build/StripePCF_1_4.zip)
 
 You can also download and import a sample demo canvas app that uses these components and contains the formulas explained later in the section [Setup and use](#setup-and-use):
-* [Download sample app unmanaged solution](build/StripePCFDemo_1_3.zip)
+* [Download sample apps unmanaged solution](build/StripePCFDemo_1_4.zip)
 
 Don't forget to click *"Publish all customizations"* for the new changes to be available in the environment.
 
@@ -112,13 +114,19 @@ You get the Stripe secret keys from the developers dashboard in Stripe account:
 
 ![Publishable key from your Stripe account](/media/stripe-publishable-key.png)
 
-4. Set the **Customer** attribute with a customer reference as a string as per your business logic (optional). Please note, the vaklue of this field will be set to the **billing_details.name** property of the Stripe payment object.
+4. Set the **Customer** attribute with a customer reference as a string as per your business logic (optional). Please note, the value of this field will be set to the **billing_details.name** property of the Stripe payment object.
 
 5. Setup the visual appearance of the control (optional):
 
 * **CardFontSize** – font size of the card number capture element
 * **ButtonFontSize** – font size for the Pay button
 * **ErrorFontSize** – font size of the error messages
+
+The next steps will depend on which flow you will use:
+* Regular payment flow when PaymentIntent object is created **before** the credit card details are captured. 
+* Auto confirmation, required for MOTO payments, when PaymentIntent object is created **after** the credit card details are captured and the PaymentIntent is confirmed automatically.
+
+### Regular payment flow (no auto confirmation) ###
 
 6. Before your payment screen is shown and the payment amount is defined, e.g. on the *Next* button of the previous screen, add the formula to create the **PaymentIntent** object:
 
@@ -135,9 +143,12 @@ where:
 * **currency** – currency code, must be [one supported by Stripe](https://stripe.com/docs/currencies).
 * **description** – any description of your payment as you need it (can be empty)
 
-7. Set the property **PaymentIntentClientSecret** of the **StripePayment** component to use the PaymentIntent’s object’s **client_secret** value which will be set by the previous code:
+7. Set the properties of the **StripePayment** component:
+*  **PaymentIntentClientSecret** to use the PaymentIntent’s object’s **client_secret** value which will be set by the previous code:
 
        payment_intent.client_secret
+
+* **AutoConfirm**: Off for this flow.
 
 8. The processing of card payment is initiated when users clicks "Pay" button and this is handled transparently to the application code. There is no card details going through the application backend and you have no control of this flow. What you do have control is handling of the events. 
 
@@ -147,17 +158,86 @@ where:
        
 ![Component in the app, OnChange handler](/media/component-app.png)
 
-10. For test integration, you can use the card number **“4242424242424242”** with any future expiry date and any 3 digit CVV code. See here for more test cards: https://stripe.com/docs/testing
+10. For test integration, you can use the test card numbers with any future expiry date and any 3 digit CVV code. See here for more test cards: https://stripe.com/docs/testing:
+* **“4242424242424242”**  - successful payment
+* **“4000000000000002”** - declined payment
 
 11. You can use **Reset** property to reset the status of the Stripe component. This property works as a trigger when is set from "false" to "true". It has no effect if the property doesn't change or changes from "true" to "false". In order to reset the payment component, set the property value to refer to a variable and set the value of the variable to "true" and then back to "false". 
 
+### Auto confirmation and MOTO flow ###
+
+This flow does not use payment intent client secret as the payment intent is created after the card details are submitted. The submission of the credit card details by the component doesn't really confirm a payment yet, but provide a "payment method id" reference used at the next steps. 
+
+12. You will need to turn on Formula-level error managemtn in Power App. This festure is off by default and is located in Settings > Upcoming features > Preview:
+
+![Formula-level error handling](/media/error-handling-power-app.png)
+
+13. Set the properties of the **StripePayment** component: 
+* **AutoConfirm**: On for this flow.
+
+14. Once the card details submitted by a user, you would need to do 2 things:
+* Initiate CreatePaymentIntent on the connector to actually process the payment  
+* Handle success and errors. This is much more complicated handling in Power App as the payment processing declines are returned as API errors (HTTP status 402, for example) which causes Power App to throw an error if not handled properly. 
+
+To do this, you can use the following sample formula in Power Apps **OnChange** handler of the component by verifying the PaymentStatus attribute and errors. Please note use of MOTO payments, if this is required for your use-case. 
+```
+If(
+    StripeWidget.PaymentStatus = "submitted",
+    Set(
+        ApiResponse,
+        StripePaymentIntent.CreatePaymentIntent(
+            {
+                amount: DonationAmount * 100,
+                currency: "aud",
+                description: "",
+                confirm: true,
+                payment_method: StripeWidget.PaymentMethodId,
+                'payment_method_options[card][moto]': true
+            }
+        )
+    );
+    IfError(
+        ApiResponse,
+        With(
+            {error_clue: "StripePaymentIntent.CreatePaymentIntent failed:"},
+            Set(
+                PaymentError,
+                Text(
+                    ParseJSON(
+                        Right(
+                            FirstError.Message,
+                            Len(FirstError.Message) - Len(error_clue)
+                        )
+                    ).error.message
+                )
+            )
+        ),
+        If(
+            ApiResponse.status <> "succeeded",
+            Set(
+                PaymentError,
+                Concatenate(
+                    "Coluld not process the payment, reason: ",
+                    ApiResponse.status
+                )
+            ),
+            Navigate(Receipt)
+        )
+    );
+)
+```
+
+Use a Label component, for example, to display the error message from "PaymentError" variable. See the demo app **Stripe Donations with MOTO** for more details.
+
+14. Use [test card numbers](https://stripe.com/docs/testing) to verify various scenarios, positive and negative. Spcifically, to test MOTO payment use **4000002500003155** - it should succeed when moto=true and fail with "requires_action" when moto=false. 
+
 ## Demo canvas Power App ##
 
-You can find a sample demo Canvas app in the [sample app unmanaged solution](build/StripePCFDemo_1_3.zip). 
+You can find two sample demo Canvas apps in the [sample app unmanaged solution](build/StripePCFDemo_1_4.zip). 
 
 1. Import the solution and publish all customizations. 
 
-2. Find and edit the canvas app *StripePaymentsDemo*. When you open the app, you may get the warning window as below when opening the app for edit. This doesn't happen for a published app though.
+2. Find and edit the canvas app **StripePaymentsDemo** or **Stripe Donations with MOTO**. When you open the apps, you may get the warning window as below when opening the app for edit. This doesn't happen for a published app though.
 
 ![Warning PCF component](media/pcf-warning.PNG)
 
