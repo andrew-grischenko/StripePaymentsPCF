@@ -18,7 +18,6 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 	private card_font_size: number;
 	private button_font_size: number;
 	private error_font_size: number;
-	private isMoto: boolean;
 	private isAutoConfirm: boolean;
 	private paymentMethodId: string;
 
@@ -47,6 +46,7 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 	{
 		this.has_been_reset = false;
 		this.payment_status = STATUS_NEW;
+		this.paymentMethodId = "";
 		this._notifyOutputChanged = notifyOutputChanged;
 		container.appendChild(this.getHTMLElements());
 
@@ -78,7 +78,6 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 	{
 		if(this._elements)
 		{
-			console.log("Recreating card element.");
 			this._card = this._elements.create("card", this.getCardElementOptions());
 			this._card.mount("#card-element");
 			this._card.on('change', ({error}) => {
@@ -133,7 +132,6 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 	{
 		this.prop_customer	= context.parameters.Customer.raw || "";
 		this.payment_intent_client_secret = context.parameters.PaymentIntentClientSecret.raw || "";
-		this.isMoto = context.parameters.Moto.raw || false;
 		this.isAutoConfirm = context.parameters.AutoConfirm.raw || false;
 
 		if(this.stripe_client_key != context.parameters.StripeClientKey.raw)
@@ -230,12 +228,19 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 		return template.content;
 	}
 
+	private validateInput():boolean {
+		return true;
+	}
+
 	/*
 	* Calls stripe.confirmCardPayment which creates a pop-up modal to
 	* prompt the user to enter extra authentication details without leaving your page
 	*/
 	private pay(): void 
 	{
+		if(!this.validateInput())
+			return;
+		
 		this.changeLoadingState(true);
 		this.setStatus(STATUS_PROCESSING);
 		
@@ -299,13 +304,14 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 									this.detailsSubmitted();
 								} else 
 									throw "ERROR: No Payment method data returned from Stripe (unexpected)";
-							})
+							});
 						});	
 					} else
 						throw "ERROR: Not initialised Stripe client or empty PaymentIntentClientSecret";
 		}
 		catch (err: any) {
 			this.setStatus(STATUS_ERROR);
+			console.log(err);
 			console.log(err.message);
 			this.showError("The payment component has not been initialised properly. Did you set correct StripeClientKey and valid PaymentIntentClientSecret?");
 		}
@@ -338,6 +344,7 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 	/* Neutral state when payment details have been submitted */
 	private detailsSubmitted() {
 		this.setStatus(STATUS_SUBMITTED);
+		document.querySelector("span#button-text")!.innerHTML = "Submitted";
 		this.changeLoadingState(false);
 	}
 
@@ -345,6 +352,7 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 	private reset() {
 		document.querySelector(".sr-payment-form")!.classList.remove("hidden");
 		document.querySelector(".sr-result")!.classList.add("hidden");
+		document.querySelector("span#button-text")!.innerHTML = "Pay";
 		this.changeLoadingState(false);
 	}
 
@@ -352,13 +360,13 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 	// Show a spinner on payment submission
 	private changeLoadingState(isLoading: boolean) {
 		if (isLoading) {
-			document.querySelector("button")!.disabled = true;
+			(document.querySelector("button#submit")! as HTMLButtonElement)!.disabled = true;
 			document.querySelector("#spinner")!.classList.remove("hidden");
-			document.querySelector("#button-text")!.classList.add("hidden");
+			document.querySelector("span#button-text")!.classList.add("hidden");
 		} else {
-			document.querySelector("button")!.disabled = false;
+			(document.querySelector("button#submit")! as HTMLButtonElement).disabled = false;
 			document.querySelector("#spinner")!.classList.add("hidden");
-			document.querySelector("#button-text")!.classList.remove("hidden");
+			document.querySelector("span#button-text")!.classList.remove("hidden");
 		}
 	}
 }
