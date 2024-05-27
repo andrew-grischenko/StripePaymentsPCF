@@ -158,6 +158,24 @@ where:
        
 ![Component in the app, OnChange handler](/media/component-app.png)
 
+
+Alternatively, you can also capture the charge record as the following (see StripePcfDemo app):
+```
+        If(
+            StripeWidget.PaymentStatus = "completed",
+            Set(
+                charge_object,
+                StripePaymentIntent.GetCharges({
+                    payment_intent: payment_intent.id
+                    })
+            );
+            Navigate(Receipt)
+        )
+```
+
+Then, you can access charge id as `First(charge_object).id` and amount captured as `First(charge_object).amount_captured` etc. 
+please note, the charge object is limited to a few properties only: `id`, `amount`, `amount_captured`, `amount_refunded`.
+
 10. For test integration, you can use the test card numbers with any future expiry date and any 3 digit CVV code. See here for more test cards: https://stripe.com/docs/testing:
 * **“4242424242424242”**  - successful payment
 * **“4000000000000002”** - declined payment
