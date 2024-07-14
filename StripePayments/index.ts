@@ -218,7 +218,7 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 						<span id="order-amount"></span>
 					</button>
 				</form>
-				<div class="sr-result hidden">
+				<div id="sr-completed" class="sr-result hidden">
 					<p>Payment completed<br /></p>
 				</div>
 			</div>`;
@@ -337,7 +337,7 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 	/* Shows a success / error message when the payment is complete */
 	private orderComplete() {
 		document.querySelector(".sr-payment-form")!.classList.add("hidden");
-		document.querySelector(".sr-result")!.classList.remove("hidden");
+		document.querySelector("#sr-completed")!.classList.remove("hidden");
 		this.changeLoadingState(false);
 	}
 
@@ -351,7 +351,8 @@ export class StripePayments3 implements ComponentFramework.StandardControl<IInpu
 	// Resets the form status to new
 	private reset() {
 		document.querySelector(".sr-payment-form")!.classList.remove("hidden");
-		document.querySelector(".sr-result")!.classList.add("hidden");
+		document.querySelector("#sr-completed")!.classList.add("hidden");
+		document.querySelector("#sr-not-initialised")!.classList.add("hidden");
 		document.querySelector("span#button-text")!.innerHTML = "Pay";
 		this.changeLoadingState(false);
 	}
